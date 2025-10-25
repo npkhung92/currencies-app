@@ -1,7 +1,7 @@
 package com.hung.currencies.presentation
 
-import androidx.lifecycle.viewModelScope
 import com.hung.core.presentation.BaseViewModel
+import com.hung.core.presentation.DefaultErrorEvent
 import com.hung.core.presentation.PresentationState
 import com.hung.currencies.domain.model.CurrencyFilterRequestDomainModel
 import com.hung.currencies.domain.usecase.DeleteCurrencySampleUseCase
@@ -15,7 +15,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,13 +44,13 @@ class CurrencyListViewModel @Inject constructor(
     }
 
     fun onInsertAction() {
-        viewModelScope.launch {
+        launchUseCase {
             insertCurrencySampleUseCase()
         }
     }
 
     fun onClearAction() {
-        viewModelScope.launch {
+        launchUseCase {
             deleteCurrencySampleUseCase()
         }
     }
@@ -71,43 +70,20 @@ class CurrencyListViewModel @Inject constructor(
 
     private fun getCurrencyList(searchText: String, filter: CurrencyFilterPresentationModel) {
         searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            val result = runCatching {
-                getCurrencyListUseCase(
-                    request = CurrencyFilterRequestDomainModel(
-                        searchText = searchText,
-                        currencyType = currencyFilterMapper.map(filter)
-                    )
-                ).onStart {
-                    updateState { lastState ->
-                        lastState.copy(
-                            isLoading = true
-                        )
-                    }
-                }.onCompletion { throwable ->
-                    throwable?.let {
-                        updateState { lastState ->
-                            lastState.copy(
-                                isLoading = false,
-                                isError = true
-                            )
-                        }
-                    }
-                }.collect { currencyList ->
-                    updateState { lastState ->
-                        lastState.copy(
-                            isLoading = false,
-                            isError = false,
-                            currencyList = currencyList.map { currencyInfoMapper.map(it) }
-                        )
-                    }
+        searchJob = launchUseCase {
+            getCurrencyListUseCase(
+                request = CurrencyFilterRequestDomainModel(
+                    searchText = searchText,
+                    currencyType = currencyFilterMapper.map(filter)
+                )
+            ).onCompletion { throwable ->
+                throwable?.let {
+                    sendEvent(DefaultErrorEvent(it.message))
                 }
-            }
-            if (!result.isSuccess) {
+            }.collect { currencyList ->
                 updateState { lastState ->
                     lastState.copy(
-                        isLoading = false,
-                        isError = true
+                        currencyList = currencyList.map { currencyInfoMapper.map(it) }
                     )
                 }
             }
@@ -116,8 +92,6 @@ class CurrencyListViewModel @Inject constructor(
 }
 
 data class CurrencyListScreenPresentationState(
-    val isLoading: Boolean = true,
-    val isError: Boolean = false,
     val currencyList: List<CurrencyInfoPresentationModel> = emptyList(),
     val filter: CurrencyFilterPresentationModel = CurrencyFilterPresentationModel.ALL,
     val searchQuery: String = ""

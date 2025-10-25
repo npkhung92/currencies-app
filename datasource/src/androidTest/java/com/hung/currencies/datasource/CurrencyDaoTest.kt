@@ -3,6 +3,9 @@ package com.hung.currencies.datasource
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.runner.AndroidJUnit4
+import com.hung.currencies.datasource.currency.CurrencyDao
+import com.hung.currencies.datasource.currency.CurrencyEntity
+import com.hung.currencies.datasource.currency.CurrencyTypeLocalModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

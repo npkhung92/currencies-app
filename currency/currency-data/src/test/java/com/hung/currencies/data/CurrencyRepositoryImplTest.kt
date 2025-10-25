@@ -1,6 +1,6 @@
 package com.hung.currencies.data
 
-import com.hung.currencies.data.local.SampleCurrencyListProvider
+import com.hung.currencies.data.provider.SampleCurrencyListProvider
 import com.hung.currencies.data.mapper.CurrencyEntityDomainMapper
 import com.hung.currencies.data.mapper.CurrencyTypeDomainLocalMapper
 import com.hung.currencies.datasource.currency.CurrencyDao
@@ -230,7 +230,7 @@ class CurrencyRepositoryImplTest {
             )
         )
 
-        every { mockCurrencyListProvider.provide() } returns sampleCurrencies
+        coEvery { mockCurrencyListProvider.provide() } returns sampleCurrencies
         coEvery { mockDao.insertAll(*sampleCurrencies.toTypedArray()) } returns Unit
 
         // When
@@ -244,7 +244,7 @@ class CurrencyRepositoryImplTest {
     @Test
     fun `insertCurrencySample should handle empty sample data`() = runTest {
         // Given
-        every { mockCurrencyListProvider.provide() } returns emptyList()
+        coEvery { mockCurrencyListProvider.provide() } returns emptyList()
         coEvery { mockDao.insertAll() } returns Unit
 
         // When

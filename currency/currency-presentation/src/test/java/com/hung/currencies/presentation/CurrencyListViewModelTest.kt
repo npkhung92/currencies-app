@@ -1,5 +1,6 @@
 package com.hung.currencies.presentation
 
+import com.hung.core.presentation.DefaultErrorEvent
 import com.hung.currencies.domain.model.CurrencyFilterRequestDomainModel
 import com.hung.currencies.domain.model.CurrencyInfoDomainModel
 import com.hung.currencies.domain.model.CurrencyTypeDomainModel
@@ -18,8 +19,10 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -27,7 +30,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -76,8 +78,6 @@ class CurrencyListViewModelTest {
     fun `initial state should have default values`() = runTest {
         val initialState = viewModel.state.value
 
-        assertTrue(initialState.isLoading)
-        assertFalse(initialState.isError)
         assertTrue(initialState.currencyList.isEmpty())
         assertEquals(CurrencyFilterPresentationModel.ALL, initialState.filter)
         assertEquals("", initialState.searchQuery)
@@ -111,8 +111,6 @@ class CurrencyListViewModelTest {
 
         // Then
         val state = viewModel.state.value
-        assertFalse(state.isLoading)
-        assertFalse(state.isError)
         assertEquals(2, state.currencyList.size)
     }
 
@@ -195,23 +193,6 @@ class CurrencyListViewModelTest {
     }
 
     @Test
-    fun `getCurrencyList should handle error and update state correctly`() = runTest {
-        // Given
-        coEvery { getCurrencyListUseCase(any()) } throws RuntimeException("Database error")
-        every { currencyFilterMapper.map(any()) } returns null
-
-        // When
-        viewModel.onEnter()
-        advanceUntilIdle()
-
-        // Then
-        val state = viewModel.state.value
-        assertFalse(state.isLoading)
-        assertTrue(state.isError)
-        assertTrue(state.currencyList.isEmpty())
-    }
-
-    @Test
     fun `getCurrencyList should handle empty result`() = runTest {
         // Given
         coEvery { getCurrencyListUseCase(any()) } returns flowOf(emptyList())
@@ -223,8 +204,6 @@ class CurrencyListViewModelTest {
 
         // Then
         val state = viewModel.state.value
-        assertFalse(state.isLoading)
-        assertFalse(state.isError)
         assertTrue(state.currencyList.isEmpty())
     }
 
@@ -280,14 +259,61 @@ class CurrencyListViewModelTest {
     }
 
     @Test
-    fun `getCurrencyList should handle onCompletion with exception and update state correctly`() = runTest {
+    fun `onInsertAction should send DefaultErrorEvent when insertCurrencySampleUseCase throws exception`() = runTest {
         // Given
-        val exception = RuntimeException("Database error")
-        val flowWithException = flow<List<CurrencyInfoDomainModel>> {
-            throw exception
+        val exception = RuntimeException("Insert failed")
+        coEvery { insertCurrencySampleUseCase() } throws exception
+
+        // When
+        viewModel.onInsertAction()
+        advanceUntilIdle()
+
+        // Then
+        val event = viewModel.events.first()
+        assertTrue(event is DefaultErrorEvent && event.message == "Insert failed")
+    }
+
+    @Test
+    fun `onClearAction should send DefaultErrorEvent when deleteCurrencySampleUseCase throws exception`() = runTest {
+        // Given
+        val exception = RuntimeException("Delete failed")
+        coEvery { deleteCurrencySampleUseCase() } throws exception
+
+        // When
+        viewModel.onClearAction()
+        advanceUntilIdle()
+
+        // Then
+        val event = viewModel.events.first()
+        assertTrue(event is DefaultErrorEvent && event.message == "Delete failed")
+    }
+
+    @Test
+    fun `getCurrencyList should send DefaultErrorEvent when getCurrencyListUseCase throws exception in launchUseCase`() =
+        runTest {
+            // Given
+            val exception = RuntimeException("Get currency list failed")
+            coEvery { getCurrencyListUseCase(any()) } throws exception
+            every { currencyFilterMapper.map(any()) } returns null
+
+            // When
+            viewModel.onEnter()
+            advanceUntilIdle()
+
+            // Then
+            val event = viewModel.events.first()
+            assertTrue(event is DefaultErrorEvent && event.message == "Get currency list failed")
         }
-        
-        coEvery { getCurrencyListUseCase(any()) } returns flowWithException
+
+    @Test
+    fun `getCurrencyList should send DefaultErrorEvent when flow onCompletion throws exception`() = runTest {
+        // Given
+        val exception = RuntimeException("Flow completion error")
+        val flowWithCompletionException = flow<List<CurrencyInfoDomainModel>> {
+            emit(emptyList())
+        }.onCompletion { throw exception }
+
+        coEvery { getCurrencyListUseCase(any()) } returns flowWithCompletionException
         every { currencyFilterMapper.map(any()) } returns null
 
         // When
@@ -295,9 +321,7 @@ class CurrencyListViewModelTest {
         advanceUntilIdle()
 
         // Then
-        val state = viewModel.state.value
-        assertFalse(state.isLoading)
-        assertTrue(state.isError)
-        assertTrue(state.currencyList.isEmpty())
+        val event = viewModel.events.first()
+        assertTrue(event is DefaultErrorEvent && event.message == "Flow completion error")
     }
 }

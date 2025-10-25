@@ -30,6 +30,19 @@ abstract class BaseViewModel<ViewState : PresentationState>(
             _events.send(event)
         }
     }
+
+    protected fun launchUseCase(
+        onError: (Throwable?) -> Unit = { sendEvent(DefaultErrorEvent(it?.message)) },
+        useCaseBlock: suspend () -> Unit,
+    ) = viewModelScope.launch {
+        val result = runCatching {
+            useCaseBlock()
+        }
+        if (!result.isSuccess) {
+            onError(result.exceptionOrNull())
+        }
+    }
+
     open fun onEnter() {}
     open fun onExit() {}
 }

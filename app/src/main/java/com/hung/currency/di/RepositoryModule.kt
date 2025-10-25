@@ -1,7 +1,7 @@
 package com.hung.currency.di
 
 import com.hung.currencies.data.CurrencyRepositoryImpl
-import com.hung.currencies.data.local.SampleCurrencyListProvider
+import com.hung.currencies.data.provider.SampleCurrencyListProvider
 import com.hung.currencies.data.mapper.CurrencyEntityDomainMapper
 import com.hung.currencies.data.mapper.CurrencyTypeDomainLocalMapper
 import com.hung.currencies.datasource.currency.CurrencyDao
