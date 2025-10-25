@@ -4,7 +4,7 @@ import com.hung.currencies.data.CurrencyRepositoryImpl
 import com.hung.currencies.data.local.SampleCurrencyListProvider
 import com.hung.currencies.data.mapper.CurrencyEntityDomainMapper
 import com.hung.currencies.data.mapper.CurrencyTypeDomainLocalMapper
-import com.hung.currencies.datasource.CurrencyDao
+import com.hung.currencies.datasource.currency.CurrencyDao
 import com.hung.currencies.domain.repository.CurrencyRepository
 import dagger.Module
 import dagger.Provides

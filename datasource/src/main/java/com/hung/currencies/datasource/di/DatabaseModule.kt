@@ -3,7 +3,7 @@ package com.hung.currencies.datasource.di
 import android.content.Context
 import androidx.room.Room
 import com.hung.currencies.datasource.AppDatabase
-import com.hung.currencies.datasource.CurrencyDao
+import com.hung.currencies.datasource.currency.CurrencyDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

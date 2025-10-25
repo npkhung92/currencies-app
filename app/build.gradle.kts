@@ -43,11 +43,14 @@ android {
 }
 
 dependencies {
-    implementation(projects.presentation)
-    implementation(projects.domain)
-    implementation(projects.data)
+    implementation(projects.currency.currencyUi)
+    implementation(projects.currency.currencyPresentation)
+    implementation(projects.currency.currencyDomain)
+    implementation(projects.currency.currencyData)
     implementation(projects.datasource)
 
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -57,7 +60,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.core)
-
     implementation(libs.androidx.navigation.compose)
 
     implementation(libs.hilt.android)

@@ -22,7 +22,10 @@ dependencyResolutionManagement {
 rootProject.name = "CurrencyApplication"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 include(":app")
-include(":domain")
-include(":data")
-include(":presentation")
 include(":datasource")
+include(":currency:currency-data")
+include(":currency:currency-presentation")
+include(":currency:currency-domain")
+include(":currency:currency-ui")
+include(":core:core-presentation")
+include(":core:core-ui")
