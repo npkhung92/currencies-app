@@ -24,6 +24,7 @@ room = "2.8.3"
 coreTesting = "2.2.0"
 kotlinxCoroutinesTest = "1.10.2"
 mockk = "1.14.6"
+testCoreVersion = "1.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -55,6 +56,8 @@ hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt" }
 dagger-hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroid" }
 dagger-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
+test-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "testCoreVersion" }
+android-test-runner = { group = "androidx.test", name = "runner", version.ref = "testCoreVersion" }
 
 
 [plugins]

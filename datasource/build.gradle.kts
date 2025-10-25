@@ -48,4 +48,10 @@ dependencies {
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.room.kotlin.extensions)
+
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.core.testing)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.test.core.ktx)
+    androidTestImplementation(libs.android.test.runner)
 }

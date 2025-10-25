@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CurrencyDao {
-    @Query("SELECT * FROM currency")
-    suspend fun getAllCurrencies(): List<CurrencyEntity>
 
     @Query("""
         SELECT * FROM currency 
