@@ -33,9 +33,9 @@ abstract class BaseViewModel<ViewState : PresentationState>(
         }
     }
 
-    protected fun launchUseCase(
+    protected fun <T> launchUseCase(
         onError: (Throwable?) -> Unit = { sendEvent(DefaultErrorEvent(it?.message)) },
-        useCaseBlock: suspend () -> Unit,
+        useCaseBlock: suspend () -> T,
     ) = viewModelScope.launch(
         CoroutineExceptionHandler { _, throwable ->
             if (throwable !is CancellationException) {

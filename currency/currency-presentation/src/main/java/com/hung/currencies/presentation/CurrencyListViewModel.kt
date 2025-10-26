@@ -42,13 +42,15 @@ class CurrencyListViewModel @Inject constructor(
 
     fun onInsertAction() {
         launchUseCase {
-            insertCurrencySampleUseCase()
+            insertCurrencySampleUseCase(Unit)
+            sendEvent(CurrencyListEvent.SucceedInsertCurrencySample)
         }
     }
 
     fun onClearAction() {
         launchUseCase {
-            deleteCurrencySampleUseCase()
+            deleteCurrencySampleUseCase(Unit)
+            sendEvent(CurrencyListEvent.SucceedClearCurrencySample)
         }
     }
 
@@ -72,14 +74,15 @@ class CurrencyListViewModel @Inject constructor(
                 request = CurrencyFilterRequestDomainModel(
                     searchText = searchText,
                     currencyType = currencyFilterMapper.map(filter)
-                )
-            ).collect { currencyList ->
-                updateState { lastState ->
-                    lastState.copy(
-                        currencyList = currencyList.map { currencyInfoMapper.map(it) }
-                    )
+                ),
+                onResult = { currencyList ->
+                    updateState { lastState ->
+                        lastState.copy(
+                            currencyList = currencyList.map { currencyInfoMapper.map(it) }
+                        )
+                    }
                 }
-            }
+            )
         }
     }
 }

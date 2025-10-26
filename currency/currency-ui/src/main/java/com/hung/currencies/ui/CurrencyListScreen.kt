@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.hung.core.presentation.DefaultErrorEvent
 import com.hung.core.ui.BaseScreen
+import com.hung.currencies.presentation.CurrencyListEvent
 import com.hung.currencies.presentation.CurrencyListScreenPresentationState
 import com.hung.currencies.presentation.CurrencyListViewModel
 import com.hung.currencies.presentation.model.CurrencyFilterPresentationModel
@@ -61,8 +62,20 @@ internal fun CurrencyListScreen() {
     val context = LocalContext.current
     BaseScreen<CurrencyListScreenPresentationState, CurrencyListViewModel>(
         eventHandler = { event ->
-            if (event is DefaultErrorEvent) {
-                Toast.makeText(context, R.string.currency_list_error_message, Toast.LENGTH_SHORT).show()
+            when (event) {
+                is CurrencyListEvent.SucceedClearCurrencySample -> {
+                    Toast.makeText(context, R.string.currency_list_clear_sample_succeed_message, Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+                is CurrencyListEvent.SucceedInsertCurrencySample -> {
+                    Toast.makeText(context, R.string.currency_list_insert_sample_succeed_message, Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+                is DefaultErrorEvent -> {
+                    Toast.makeText(context, R.string.currency_list_error_message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     ) {

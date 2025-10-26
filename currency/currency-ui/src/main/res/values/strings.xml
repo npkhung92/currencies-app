@@ -5,4 +5,6 @@
     <string name="currency_list_empty_msg">No currency information</string>
     <string name="currency_list_search_hint">Try \"MCO\"</string>
     <string name="currency_list_error_message">Something went wrong.</string>
+    <string name="currency_list_insert_sample_succeed_message">Inserted currency list successfully.</string>
+    <string name="currency_list_clear_sample_succeed_message">Cleared currency list successfully.</string>
 </resources>

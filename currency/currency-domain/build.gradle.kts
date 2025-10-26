@@ -34,5 +34,6 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.coreDomain)
     implementation(libs.kotlin.coroutine.core)
 }

@@ -49,6 +49,8 @@ dependencies {
     implementation(projects.currency.currencyDomain)
     implementation(projects.currency.currencyData)
     implementation(projects.datasource)
+    implementation(projects.core.coreDomain)
+    implementation(projects.core.coreData)
 
     implementation(libs.navigation.fragment.ktx)
     implementation(libs.androidx.appcompat)

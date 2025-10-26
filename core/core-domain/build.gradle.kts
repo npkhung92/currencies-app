@@ -3,18 +3,14 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.google.devtools.ksp)
 }
 
 android {
-    namespace = "com.hung.currencies.presentation"
+    namespace = "com.hung.core.domain"
     compileSdk = libs.versions.compileSdk.get().toInt()
-
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
-
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -36,16 +32,5 @@ android {
 }
 
 dependencies {
-    implementation(projects.currency.currencyDomain)
-    implementation(projects.core.corePresentation)
-    implementation(projects.core.coreDomain)
-
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
-
-    implementation(libs.hilt.android)
-    ksp(libs.bundles.hilt.compiler)
-
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockk)
+    implementation(libs.androidx.core.ktx)
 }
