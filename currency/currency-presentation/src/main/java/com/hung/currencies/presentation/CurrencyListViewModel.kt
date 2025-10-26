@@ -1,7 +1,6 @@
 package com.hung.currencies.presentation
 
 import com.hung.core.presentation.BaseViewModel
-import com.hung.core.presentation.DefaultErrorEvent
 import com.hung.core.presentation.PresentationState
 import com.hung.currencies.domain.model.CurrencyFilterRequestDomainModel
 import com.hung.currencies.domain.usecase.DeleteCurrencySampleUseCase
@@ -13,8 +12,6 @@ import com.hung.currencies.presentation.model.CurrencyFilterPresentationModel
 import com.hung.currencies.presentation.model.CurrencyInfoPresentationModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
 @HiltViewModel
@@ -76,11 +73,7 @@ class CurrencyListViewModel @Inject constructor(
                     searchText = searchText,
                     currencyType = currencyFilterMapper.map(filter)
                 )
-            ).onCompletion { throwable ->
-                throwable?.let {
-                    sendEvent(DefaultErrorEvent(it.message))
-                }
-            }.collect { currencyList ->
+            ).collect { currencyList ->
                 updateState { lastState ->
                     lastState.copy(
                         currencyList = currencyList.map { currencyInfoMapper.map(it) }

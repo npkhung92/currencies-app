@@ -1,5 +1,6 @@
 package com.hung.currencies.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -39,12 +40,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.hung.core.presentation.DefaultErrorEvent
 import com.hung.core.ui.BaseScreen
 import com.hung.currencies.presentation.CurrencyListScreenPresentationState
 import com.hung.currencies.presentation.CurrencyListViewModel
@@ -55,23 +58,38 @@ import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 internal fun CurrencyListScreen() {
-    BaseScreen<CurrencyListScreenPresentationState, CurrencyListViewModel> {
+    val context = LocalContext.current
+    BaseScreen<CurrencyListScreenPresentationState, CurrencyListViewModel>(
+        eventHandler = { event ->
+            if (event is DefaultErrorEvent) {
+                Toast.makeText(context, R.string.currency_list_error_message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    ) {
         val keyboardController = LocalSoftwareKeyboardController.current
         val focusManager = LocalFocusManager.current
+        val onAction = remember {
+            { action: CurrencyListUiAction ->
+                when (action) {
+                    is CurrencyListUiAction.Clear -> viewModel.onClearAction()
+                    is CurrencyListUiAction.Insert -> viewModel.onInsertAction()
+                    is CurrencyListUiAction.Filter -> viewModel.onFilterAction(action.filter)
+                    is CurrencyListUiAction.Search.Dismiss -> {
+                        viewModel.onSearchQueryAction("")
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                    }
+
+                    is CurrencyListUiAction.Search.Query -> viewModel.onSearchQueryAction(action.query)
+                }
+            }
+        }
         ScreenContent { state ->
             Content(
                 searchQuery = state.searchQuery,
                 filter = state.filter,
                 currencyList = state.currencyList.toImmutableList(),
-                onSearchQueryAction = viewModel::onSearchQueryAction,
-                onDismiss = {
-                    viewModel.onSearchQueryAction("")
-                    keyboardController?.hide()
-                    focusManager.clearFocus()
-                },
-                onClearAction = viewModel::onClearAction,
-                onInsertAction = viewModel::onInsertAction,
-                onFilterSelect = viewModel::onFilterAction
+                onCurrencyListAction = onAction
             )
         }
     }
@@ -82,15 +100,12 @@ private fun Content(
     searchQuery: String,
     filter: CurrencyFilterPresentationModel,
     currencyList: ImmutableList<CurrencyInfoPresentationModel>,
-    onSearchQueryAction: (String) -> Unit,
-    onDismiss: () -> Unit,
-    onClearAction: () -> Unit,
-    onInsertAction: () -> Unit,
-    onFilterSelect: (CurrencyFilterPresentationModel) -> Unit,
+    modifier: Modifier = Modifier,
+    onCurrencyListAction: (CurrencyListUiAction) -> Unit,
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.safeDrawing,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .imePadding(),
         topBar = {
@@ -99,15 +114,15 @@ private fun Content(
                     .fillMaxWidth()
                     .padding(all = 16.dp),
                 query = searchQuery,
-                onQueryChange = onSearchQueryAction,
-                onSearch = onSearchQueryAction,
-                onDismiss = onDismiss
+                onQueryChange = { onCurrencyListAction(CurrencyListUiAction.Search.Query(it)) },
+                onSearch = { onCurrencyListAction(CurrencyListUiAction.Search.Query(it)) },
+                onDismiss = { onCurrencyListAction(CurrencyListUiAction.Search.Dismiss) }
             )
         },
         bottomBar = {
             CurrencyActionSection(
-                onClearClick = onClearAction,
-                onInsertClick = onInsertAction
+                onClearClick = { onCurrencyListAction(CurrencyListUiAction.Clear) },
+                onInsertClick = { onCurrencyListAction(CurrencyListUiAction.Insert) }
             )
         }
     ) { paddingValues ->
@@ -119,7 +134,7 @@ private fun Content(
             item {
                 CurrencyFilterSection(
                     selectedFilter = filter,
-                    onFilterSelect = onFilterSelect
+                    onFilterSelect = { onCurrencyListAction(CurrencyListUiAction.Filter(it)) }
                 )
             }
             if (currencyList.isEmpty()) {

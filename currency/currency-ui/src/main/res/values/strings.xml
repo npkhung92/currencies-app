@@ -4,4 +4,5 @@
     <string name="currency_list_search_empty_msg">No Results\nTry \"MCO\"</string>
     <string name="currency_list_empty_msg">No currency information</string>
     <string name="currency_list_search_hint">Try \"MCO\"</string>
+    <string name="currency_list_error_message">Something went wrong.</string>
 </resources>

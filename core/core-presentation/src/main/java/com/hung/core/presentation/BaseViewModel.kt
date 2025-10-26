@@ -2,6 +2,8 @@ package com.hung.core.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,13 +36,14 @@ abstract class BaseViewModel<ViewState : PresentationState>(
     protected fun launchUseCase(
         onError: (Throwable?) -> Unit = { sendEvent(DefaultErrorEvent(it?.message)) },
         useCaseBlock: suspend () -> Unit,
-    ) = viewModelScope.launch {
-        val result = runCatching {
-            useCaseBlock()
+    ) = viewModelScope.launch(
+        CoroutineExceptionHandler { _, throwable ->
+            if (throwable !is CancellationException) {
+                onError(throwable)
+            }
         }
-        if (!result.isSuccess) {
-            onError(result.exceptionOrNull())
-        }
+    ) {
+        useCaseBlock()
     }
 
     open fun onEnter() {}
