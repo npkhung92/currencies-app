@@ -20,9 +20,6 @@ import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -99,7 +96,10 @@ class CurrencyListViewModelTest {
             currencyType = null
         )
 
-        coEvery { getCurrencyListUseCase(request) } returns flowOf(mockCurrencies)
+        coEvery { getCurrencyListUseCase(request, any()) } answers {
+            val onResult = secondArg<(List<CurrencyInfoDomainModel>) -> Unit>()
+            onResult(mockCurrencies)
+        }
         every { currencyFilterMapper.map(CurrencyFilterPresentationModel.ALL) } returns null
         mockCurrencies.forEachIndexed { index, model ->
             every { currencyInfoMapper.map(model) } returns mockPresentationCurrencies[index]
@@ -125,7 +125,10 @@ class CurrencyListViewModelTest {
             currencyType = CurrencyTypeDomainModel.CRYPTO
         )
 
-        coEvery { getCurrencyListUseCase(request) } returns flowOf(mockCurrencies)
+        coEvery { getCurrencyListUseCase(request, any()) } answers {
+            val onResult = secondArg<(List<CurrencyInfoDomainModel>) -> Unit>()
+            onResult(mockCurrencies)
+        }
         every { currencyFilterMapper.map(CurrencyFilterPresentationModel.CRYPTO) } returns CurrencyTypeDomainModel.CRYPTO
         mockCurrencies.forEachIndexed { index, model ->
             every { currencyInfoMapper.map(model) } returns mockPresentationCurrencies[index]
@@ -151,7 +154,10 @@ class CurrencyListViewModelTest {
             currencyType = null
         )
 
-        coEvery { getCurrencyListUseCase(request) } returns flowOf(mockCurrencies)
+        coEvery { getCurrencyListUseCase(request, any()) } answers {
+            val onResult = secondArg<(List<CurrencyInfoDomainModel>) -> Unit>()
+            onResult(mockCurrencies)
+        }
         every { currencyFilterMapper.map(CurrencyFilterPresentationModel.ALL) } returns null
         mockCurrencies.forEachIndexed { index, model ->
             every { currencyInfoMapper.map(model) } returns mockPresentationCurrencies[index]
@@ -167,35 +173,46 @@ class CurrencyListViewModelTest {
     }
 
     @Test
-    fun `onInsertAction should call insertCurrencySampleUseCase`() = runTest {
+    fun `onInsertAction should send SucceedInsertCurrencySample event when insertCurrencySampleUseCase succeeds`() = runTest {
         // Given
-        coEvery { insertCurrencySampleUseCase() } returns Unit
+        coEvery { insertCurrencySampleUseCase(Unit) } returns Unit
 
         // When
         viewModel.onInsertAction()
         advanceUntilIdle()
 
         // Then
-        coVerify { insertCurrencySampleUseCase() }
+        val event = viewModel.events.first()
+        assertTrue(event is CurrencyListEvent.SucceedInsertCurrencySample)
+        coVerify { insertCurrencySampleUseCase(Unit) }
     }
 
     @Test
-    fun `onClearAction should call deleteCurrencySampleUseCase`() = runTest {
+    fun `onClearAction should send SucceedClearCurrencySample event when deleteCurrencySampleUseCase succeeds`() = runTest {
         // Given
-        coEvery { deleteCurrencySampleUseCase() } returns Unit
+        coEvery { deleteCurrencySampleUseCase(Unit) } returns Unit
 
         // When
         viewModel.onClearAction()
         advanceUntilIdle()
 
         // Then
-        coVerify { deleteCurrencySampleUseCase() }
+        val event = viewModel.events.first()
+        assertTrue(event is CurrencyListEvent.SucceedClearCurrencySample)
+        coVerify { deleteCurrencySampleUseCase(Unit) }
     }
 
     @Test
     fun `getCurrencyList should handle empty result`() = runTest {
         // Given
-        coEvery { getCurrencyListUseCase(any()) } returns flowOf(emptyList())
+        val request = CurrencyFilterRequestDomainModel(
+            searchText = "",
+            currencyType = null
+        )
+        coEvery { getCurrencyListUseCase(request, any()) } answers {
+            val onResult = secondArg<(List<CurrencyInfoDomainModel>) -> Unit>()
+            onResult(emptyList())
+        }
         every { currencyFilterMapper.map(any()) } returns null
 
         // When
@@ -218,7 +235,10 @@ class CurrencyListViewModelTest {
             CurrencyTypeDomainModel.CRYPTO
         )
 
-        coEvery { getCurrencyListUseCase(request) } returns flowOf(mockCurrencies)
+        coEvery { getCurrencyListUseCase(request, any()) } answers {
+            val onResult = secondArg<(List<CurrencyInfoDomainModel>) -> Unit>()
+            onResult(mockCurrencies)
+        }
         every { currencyFilterMapper.map(CurrencyFilterPresentationModel.CRYPTO) } returns CurrencyTypeDomainModel.CRYPTO
         mockCurrencies.forEachIndexed { index, model ->
             every { currencyInfoMapper.map(model) } returns mockPresentationCurrencies[index]
@@ -242,7 +262,10 @@ class CurrencyListViewModelTest {
         val mockPresentationCurrencies = listOf(CurrencyInfoPresentationModel.Fiat("usd", "US Dollar", "$", "USD"))
         val request = CurrencyFilterRequestDomainModel("dollar", CurrencyTypeDomainModel.FIAT)
 
-        coEvery { getCurrencyListUseCase(request) } returns flowOf(mockCurrencies)
+        coEvery { getCurrencyListUseCase(request, any()) } answers {
+            val onResult = secondArg<(List<CurrencyInfoDomainModel>) -> Unit>()
+            onResult(mockCurrencies)
+        }
         every { currencyFilterMapper.map(CurrencyFilterPresentationModel.FIAT) } returns CurrencyTypeDomainModel.FIAT
         mockCurrencies.forEachIndexed { index, model ->
             every { currencyInfoMapper.map(model) } returns mockPresentationCurrencies[index]
@@ -262,7 +285,7 @@ class CurrencyListViewModelTest {
     fun `onInsertAction should send DefaultErrorEvent when insertCurrencySampleUseCase throws exception`() = runTest {
         // Given
         val exception = RuntimeException("Insert failed")
-        coEvery { insertCurrencySampleUseCase() } throws exception
+        coEvery { insertCurrencySampleUseCase(Unit) } throws exception
 
         // When
         viewModel.onInsertAction()
@@ -277,7 +300,7 @@ class CurrencyListViewModelTest {
     fun `onClearAction should send DefaultErrorEvent when deleteCurrencySampleUseCase throws exception`() = runTest {
         // Given
         val exception = RuntimeException("Delete failed")
-        coEvery { deleteCurrencySampleUseCase() } throws exception
+        coEvery { deleteCurrencySampleUseCase(Unit) } throws exception
 
         // When
         viewModel.onClearAction()
@@ -293,7 +316,11 @@ class CurrencyListViewModelTest {
         runTest {
             // Given
             val exception = RuntimeException("Get currency list failed")
-            coEvery { getCurrencyListUseCase(any()) } throws exception
+            val request = CurrencyFilterRequestDomainModel(
+                searchText = "",
+                currencyType = null
+            )
+            coEvery { getCurrencyListUseCase(request, any()) } throws exception
             every { currencyFilterMapper.map(any()) } returns null
 
             // When
@@ -304,24 +331,4 @@ class CurrencyListViewModelTest {
             val event = viewModel.events.first()
             assertTrue(event is DefaultErrorEvent && event.message == "Get currency list failed")
         }
-
-    @Test
-    fun `getCurrencyList should send DefaultErrorEvent when flow onCompletion throws exception`() = runTest {
-        // Given
-        val exception = RuntimeException("Flow completion error")
-        val flowWithCompletionException = flow<List<CurrencyInfoDomainModel>> {
-            emit(emptyList())
-        }.onCompletion { throw exception }
-
-        coEvery { getCurrencyListUseCase(any()) } returns flowWithCompletionException
-        every { currencyFilterMapper.map(any()) } returns null
-
-        // When
-        viewModel.onEnter()
-        advanceUntilIdle()
-
-        // Then
-        val event = viewModel.events.first()
-        assertTrue(event is DefaultErrorEvent && event.message == "Flow completion error")
-    }
 }
